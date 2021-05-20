@@ -104,10 +104,6 @@ export class BasicAuthentication extends AuthenticationType {
     response: LifecycleResponseFactory,
     toolkit: AuthToolkit
   ): KibanaResponse {
-    const nextUrlParam = composeNextUrlQeuryParam(
-      request,
-      this.coreSetup.http.basePath.serverBasePath
-    );
     if (this.isPageRequest(request)) {
       if (this.config.auth.anonymous_auth_enabled && request.url.pathname !== '/app/login') {
         const redirectLocation = `${this.coreSetup.http.basePath.serverBasePath}/auth/anonymous?${request.url.pathname}`;
@@ -117,6 +113,10 @@ export class BasicAuthentication extends AuthenticationType {
           },
         });
       } else {
+        const nextUrlParam = composeNextUrlQeuryParam(
+          request,
+          this.coreSetup.http.basePath.serverBasePath
+        );
         const redirectLocation = `${this.coreSetup.http.basePath.serverBasePath}${LOGIN_PAGE_URI}?${nextUrlParam}`;
         return response.redirected({
           headers: {

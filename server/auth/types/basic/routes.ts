@@ -165,6 +165,12 @@ export class BasicAuthRoutes {
       async (context, request, response) => {
         if (this.config.auth.anonymous_auth_enabled) {
           let user: User;
+          const path: string = `${request.url.path}`;
+          let redirectUrl = '/';
+          if (path.includes('?')) {
+            redirectUrl = path.substr(path.indexOf('?') + 1);
+          }
+          context.security_plugin.logger.info('The Redirect Path is ' + redirectUrl);
           try {
             user = await this.securityClient.authenticateWithHeaders(request, {});
           } catch (error) {
@@ -199,9 +205,7 @@ export class BasicAuthRoutes {
           this.sessionStorageFactory.asScoped(request).set(sessionStorage);
           return response.redirected({
             headers: {
-              location: `${this.coreSetup.http.basePath.serverBasePath}${
-                request.url.path?.split('?')[1]
-              }`,
+              location: `${this.coreSetup.http.basePath.serverBasePath}${redirectUrl}`,
             },
             body: {
               username: user.username,
@@ -214,8 +218,10 @@ export class BasicAuthRoutes {
             },
           });
         } else {
-          return response.badRequest({
-            body: 'Anonymous auth is disabled.',
+          return response.redirected({
+            headers: {
+              location: `${this.coreSetup.http.basePath.serverBasePath}${LOGIN_PAGE_URI}`,
+            },
           });
         }
       }
